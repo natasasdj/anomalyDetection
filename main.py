@@ -22,9 +22,9 @@ ap.add_argument("-cae", "--cae_type", help="type of CAE (Convolutional Autoencod
 ap.add_argument("-ad", "--anomaly_detection", help="anomaly detection method: ocsvm - One Class Support Vector Machines, nnd - exact distance-based, qnnd - approximated distance-based with product quantization", choices=['ocsvm','nnd', 'qnnd'], default='qnnd')
 ap.add_argument("-odir", "--output_dir", help="directory to store the output results", required=True)
 ap.add_argument("-rs", "--random_seed", help="random seed", type=int, default=0)
-ap.add_argument("-k", "--k", help="nnd and qnnd parameter k", type=int, default=1)
-ap.add_argument("-m", "--m", help="qnnd parameter m", type=int, default=1, choices = [1,2,4,8,16,32,64,128])
-ap.add_argument("-c", "--c", help="qnnd parameter c", type=int, default=1, choices = [1,2,3,4,5,6,7,8])
+ap.add_argument("-k", "--param_k", help="nnd and qnnd parameter k", type=int, default=1)
+ap.add_argument("-m", "--param_m", help="qnnd parameter m", type=int, default=1, choices = [1,2,4,8,16,32,64,128])
+ap.add_argument("-c", "--param_c", help="qnnd parameter c", type=int, default=1, choices = [1,2,3,4,5,6,7,8])
 
 
 args = vars(ap.parse_args())
@@ -38,14 +38,7 @@ else:
     if (args['normal_class']<0) or (args['normal_class']>9):
         ap.error('Normal class must be in range 0..9')
 
-'''
-if (args['anomaly_detection']=='nnd' and not args['k']):
-    ap.error('if anomaly_detection is nnd then argument k must exist')
-elif args['anomaly_detection']=='qnnd' and (not (args['k'] and args['m'] and args['c'])):
-    ap.error('if anomaly_detection is qnnd then arguments m, c and k must exist')
-'''
-   
-
+        
 dataset = args ['dataset']
 normal_class = args ['normal_class']
 features_extractor = args ['features_extractor']
@@ -53,26 +46,13 @@ cae_type = args ['cae_type']
 anomaly_detection = args ['anomaly_detection']
 fdir = args ['output_dir']
 random_seed = args ['random_seed']
-k = args['k']
-m = args['m']
-c = args['c']
+k = args['param_k']
+m = args['param_m']
+c = args['param_c']
 
-'''
-dataset = 'mnist'
-normal_class = 0
-features_extractor = 'cae'
-cae_type = 'baseline'
-anomaly_detection = 'nnd'
-fdir = 'results'
-random_seed = 0
-m = 0
-c = 0
-k = 1
-'''
+
 # set random seed
 seed(random_seed); set_random_seed(random_seed)
-
-        
 
 ### data load ###
 logger.info('load data')
@@ -88,9 +68,6 @@ if features_extractor == 'cae':
 else:
     featuresExtractTime = 0
     features_train, features_test = FeaturesExtractor.raw(x_train_normal, x_test)
-
-#logger.info('features train: %s, features test: %s, features extraction test runtime: %f', features_train.shape, features_test.shape, featureExtraction_testRuntime)
-
 
 ### anomaly detection
 logger.info('anomaly detection: calculate anomaly scores and auc') 
@@ -109,6 +86,7 @@ auc_ =  100*roc_auc_score(labels_test, scores)
 
 
 ### write auc into output file
+logger.info('write auc results into an output file')
 # create resulting output directory if not exists
 if not os.path.exists(fdir):
     os.makedirs(fdir)
@@ -139,3 +117,5 @@ elif anomaly_detection == 'qnnd':
                       'randomSeed':random_seed}, ignore_index=True)
 
 auc.to_csv(fname,index=False)
+
+logger.info('END')

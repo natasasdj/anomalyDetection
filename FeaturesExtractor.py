@@ -30,8 +30,8 @@ def cae(cae_type, x_train_normal, x_test_normal, x_test):
     logger.info('fitting autoencoder model')
     autoencoder.compile(optimizer=Adam(lr = 1e-4),  loss='mse')
 
-    #e1=250; e2=100
-    e1=1; e2=1
+    e1=250; e2=100
+    #e1=1; e2=1
     autoencoder.fit(x_train_normal, x_train_normal, 
                     epochs= e1, batch_size=200, shuffle=True,
                     validation_data=(x_test_normal, x_test_normal), verbose=1)
